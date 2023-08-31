@@ -7,8 +7,8 @@ const mongoDBService = new MongoDBService("mongodb+srv://ms159236:similar-udemy@
   try {
     await mongoDBService.connect();
     console.log('Connected to MongoDB 🍃');
-    /* const adminRepository = new AdminRepository();
-    adminRepository.createDefaultAdmin() */
+    const adminRepository = new AdminRepository();
+    adminRepository.createDefaultAdmin() 
     app.listen(3000, () => console.log(`Server is running in port 3000 🚀`));
   } catch (error) {
     console.error('Error starting server:', error);

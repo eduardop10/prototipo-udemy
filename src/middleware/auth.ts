@@ -65,26 +65,6 @@ const authorizeRoles = (...roles: string[]) => {
   };
 };
 
-const authenticateAdmin2 = async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    authenticateUser(req, res, async () => {
-      const token = req.cookies.token || '';
-
-      if (!token) {
-        throw new UnauthenticatedError('Authentication invalid');
-      }
-
-      if (!isAdmin(token)) {
-        throw new UnauthorizedError('Unauthorized');
-      }
-
-      next(); // Passa o controle para o próximo middleware
-    });
-  } catch (error) {
-    next(error); // Passa o erro para o próximo middleware de tratamento de erros
-  }
-};
-
 const isAdmin = (token: string): boolean => {
   const payload = extractTokenPayload(token) as UserWithAdminPayload;
   if(!payload){

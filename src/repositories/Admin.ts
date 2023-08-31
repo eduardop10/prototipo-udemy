@@ -10,18 +10,18 @@ class AdminRepository {
 
   async createDefaultAdmin() {
     try {
-      const existingAdmin = await AdminModel.findOne({ username: 'admin' });
+      const existingAdmin = await AdminModel.findOne({ email: 'admin@admin.com' });
   
       if (!existingAdmin) {
         const defaultAdmin = new AdminModel({
           name: 'Admin',
           email: 'admin@admin.com',
-          password: 'adminPassword', // Lembre-se de criptografar a senha antes de salvar no banco de dados
+          password: 'adminPassword',
           isAdmin: true
         });
   
         await defaultAdmin.save();
-        console.log('Admin padrão criado com sucesso!');
+        console.log('Default Admin Created With Success!');
       }
     } catch (error) {
       console.error('Erro ao criar o admin padrão:', error);

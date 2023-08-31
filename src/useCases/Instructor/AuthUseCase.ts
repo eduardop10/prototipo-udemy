@@ -2,6 +2,7 @@ import { InstructorRepository } from '../../repositories/Instructor';
 import { CreateInstructorDTO } from '../../dtos/Instructor/CreateInstructor';
 import { UpdateInstructorDTO } from '../../dtos/Instructor/UpdateInstructor';
 import { InstructorDocument } from '../../models/Instructor';
+import { UnauthorizedError } from '../../errors';
 
 class RegisterUseCase {
   private InstructorRepository: InstructorRepository;
@@ -36,7 +37,7 @@ class UpdateUseCase {
 
   async execute(userId: string, data: UpdateInstructorDTO, requesterId: string): Promise<InstructorDocument | null> {
     if (userId !== requesterId) {
-      throw new Error('Unauthorized');
+      throw new UnauthorizedError('Unauthorized');
     }
 
     return await this.instructorRepository.update(userId, data);
@@ -53,7 +54,7 @@ class DeleteUseCase {
   async execute(userId: string, requesterId: string): Promise<InstructorDocument | null | void> {
     // Check if the user requesting the deletion is the same as the user being deleted
     if (userId !== requesterId) {
-      throw new Error('Unauthorized'); // You can create a custom error class for better organization
+      throw new UnauthorizedError('Unauthorized'); 
     }
 
     return await this.instructorRepository.delete(userId);

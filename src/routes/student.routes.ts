@@ -13,5 +13,6 @@ studentRoutes.post('/login', authController.login);
 //protect routes
 studentRoutes.put("/update",authenticateUser,authController.update)
 studentRoutes.delete("/delete",authenticateUser,authController.delete)
+studentRoutes.get("/about",authenticateUser,authController.about)
 
 export { studentRoutes };

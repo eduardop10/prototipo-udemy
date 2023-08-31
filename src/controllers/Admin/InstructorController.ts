@@ -1,98 +1,53 @@
 import { Request, Response } from 'express';
 import { attachCookiesToResponse,  createJWT, } from '../../utils/jwt';
-import { RegisterUseCase, LoginUseCase, UpdateUseCase, DeleteUseCase  } from '../../useCases/Instructor/AuthUseCase';
+import { UpdateUseCase, DeleteUseCase  } from '../../useCases/Instructor/AuthUseCase';
 import { CreateInstructorDTO } from '../../dtos/Instructor/CreateInstructor';
 import { UpdateInstructorDTO } from '../../dtos/Instructor/UpdateInstructor';
 import { InstructorRepository } from '../../repositories/Instructor';
 import bcrypt from 'bcrypt';
 
-class AuthController {
-    async register(req: Request, res: Response) {
-        try {
+class InstructorController {
+    async showAll(req: Request, res: Response) {
+          const userId = req.params.id; // Assuming you're passing user ID in the URL
           const { name, email, password, specialty } = req.body;
+          const requesterId = userId// User ID from token
     
           const instructorRepository = new InstructorRepository();
-          const registerUseCase = new RegisterUseCase(instructorRepository);
     
-          const InstructorData: CreateInstructorDTO = {
-            name,
-            email,
-            password,
-            specialty
-          };
+          const allInstructors = await instructorRepository.findAll()
     
-          const newInstructor = await registerUseCase.execute(InstructorData);
-    
-          res.status(200).json({
-            message: 'Instructor registered successfully',
-            Instructor: newInstructor,
-          });
-        } catch (error) {
-          res.status(500).json({
-            error: `An error occurred while registering the Instructor: ${error}`,
-          });
-        }
-      }
-
-      async login(req: Request, res: Response) {
-        try {
-          const { email, password } = req.body;
-
-          const instructorRepository = new InstructorRepository();
-          const loginUseCase = new LoginUseCase(instructorRepository);
-
-          
-          const Instructor = await loginUseCase.execute(email);
-
-          interface InstructorPayload {
-            _id: string;
-            name:string;
-            isAdmin:boolean;
-          }
-          if (!Instructor) {
-            return res.status(401).json({
-              error: 'Invalid credentials',
+          if (!allInstructors) {
+            return res.status(404).json({
+              error: 'Empty',
             });
           }
     
-          const isPasswordValid = await Instructor.comparePassword(password);
-    
-          if (!isPasswordValid) {
-            return res.status(401).json({
-              error: 'Invalid credentials',
-            });
-          }
-          
-          // Generate a JWT token and attach it to cookies during login
-          const InstructorPayload: InstructorPayload = {
-            name:Instructor.name,
-            _id: Instructor._id,
-            isAdmin:Instructor.isAdmin
-      };
-      
-          // Generate a JWT token and attach it to cookies during login
-          // You should implement this part using your JWT library
-          const token = createJWT(InstructorPayload);
-    
-          // Attach cookies to response
-          // You should implement this part based on your attachCookiesToResponse function
-          attachCookiesToResponse(res, InstructorPayload);
-    
           res.status(200).json({
-            message: 'Login successful',
-            InstructorPayload,
-            token
+            Instructors: allInstructors,
           });
-        } catch (error) {
-          res.status(500).json({
-            error: `An error occurred while logging in : ${error}`,
+      }
+
+      async findOne(req: Request, res: Response) {
+        const id = req.params.id; 
+  
+        const instructorRepository = new InstructorRepository();
+  
+        const instructor = await instructorRepository.findById(id)
+  
+        if (!instructor ) {
+          return res.status(404).json({
+            error: 'User Not Found',
           });
         }
-      }
+  
+        res.status(200).json({
+           instructor,
+        });
+    }
 
       async update(req: Request, res: Response) {
         try {
-          const userId = req.user!._id; // Assuming you're passing user ID in the URL
+          const userId = req.params.id; // Assuming you're passing user ID in the URL
           const { name, email, password, specialty } = req.body;
           const requesterId = userId// User ID from token
     
@@ -129,7 +84,7 @@ class AuthController {
       }
       async delete(req: Request, res: Response) {
         try {
-          const userId = req.user!._id; // Assuming you're passing user ID in the URL
+          const userId = req.params.id; // Assuming you're passing user ID in the URL
           const requesterId = userId; // User ID from token
       
           const instructorRepository = new InstructorRepository();
@@ -166,4 +121,4 @@ class AuthController {
   } */
 
 
-export {AuthController}
+export {InstructorController}

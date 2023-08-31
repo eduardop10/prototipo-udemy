@@ -1,5 +1,6 @@
 import InstructorModel, { InstructorDocument } from '../models/Instructor';
 import { CreateInstructorDTO } from '../dtos/Instructor/CreateInstructor';
+import { NotFoundError } from '../errors';
 
 class InstructorRepository {
   async create(data: CreateInstructorDTO): Promise<InstructorDocument> {
@@ -7,38 +8,9 @@ class InstructorRepository {
     return await instructor.save();
   }
 
-  async addSchedule(id: string, newScheduleItem: any): Promise<InstructorDocument | null> {
-    const instructor = await InstructorModel.findById(id);
-
-    if (!instructor) {
-      return null; // Instructor not found
-    }
-
-    instructor.availableSchedule.push(newScheduleItem);
-    await instructor.save();
-
-    return instructor;
+  async findAll(): Promise<InstructorDocument[]> {
+    return await InstructorModel.find();
   }
-
-
-  async removeSchedule(id: string, scheduleItemId: string): Promise<InstructorDocument | null> {
-    const instructor = await InstructorModel.findById(id);
-  
-    if (!instructor) {
-      return null; // Instructor not found
-    }
-  
-    const scheduleIndex = instructor.availableSchedule.findIndex(item => item._id.toString() === scheduleItemId);
-  
-    if (scheduleIndex !== -1) {
-      instructor.availableSchedule.splice(scheduleIndex, 1);
-      await instructor.save();
-    }
-  
-    return instructor;
-  }
-  
-
 
   async findById(id: string): Promise<InstructorDocument | null> {
     return await InstructorModel.findById(id);
@@ -57,7 +29,7 @@ class InstructorRepository {
     // Check if the user exists
     const user = await this.findById(id);
     if (!user) {
-      throw new Error('User not found');
+      throw new NotFoundError('User not found');
     }
 
     await InstructorModel.findByIdAndDelete(id);

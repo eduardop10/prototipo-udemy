@@ -2,6 +2,7 @@ import { StudentRepository } from '../../repositories/Student';
 import { CreateStudentDTO } from '../../dtos/Student/CreateStudent';
 import { UpdateStudentDTO } from '../../dtos/Student/UpdateStudent';
 import { StudentDocument } from '../../models/Student';
+import { UnauthorizedError } from '../../errors';
 
 class RegisterUseCase {
   private studentRepository: StudentRepository;
@@ -27,6 +28,18 @@ class LoginUseCase {
   }
 }
 
+class AboutUseCase {
+  private studentRepository: StudentRepository;
+
+  constructor(studentRepository: StudentRepository) {
+    this.studentRepository = studentRepository;
+  }
+
+  async execute(id: string): Promise<StudentDocument | null> {
+    return await this.studentRepository.findById(id);
+  }
+}
+
 class UpdateUseCase {
   private userRepository: StudentRepository;
 
@@ -36,7 +49,7 @@ class UpdateUseCase {
 
   async execute(userId: string, data: UpdateStudentDTO, requesterId: string): Promise<StudentDocument | null> {
     if (userId !== requesterId) {
-      throw new Error('Unauthorized');
+      throw new UnauthorizedError('Unauthorized');
     }
 
     return await this.userRepository.update(userId, data);
@@ -51,6 +64,7 @@ class DeleteUseCase {
   }
 
   async execute(userId: string, requesterId: string): Promise<StudentDocument | null | void> {
+
     // Check if the user requesting the deletion is the same as the user being deleted
     if (userId !== requesterId) {
       throw new Error('Unauthorized'); // You can create a custom error class for better organization
@@ -62,4 +76,4 @@ class DeleteUseCase {
 
 
 
-export { RegisterUseCase, LoginUseCase, UpdateUseCase, DeleteUseCase };
+export { RegisterUseCase, LoginUseCase, AboutUseCase, UpdateUseCase, DeleteUseCase };

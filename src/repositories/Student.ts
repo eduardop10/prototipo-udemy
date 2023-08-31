@@ -7,6 +7,10 @@ class StudentRepository {
     return await Student.save();
   }
 
+  async findAll(): Promise<StudentDocument[]> {
+    return await StudentModel.find();
+  }
+
   async findById(id: string): Promise<StudentDocument | null> {
     return await StudentModel.findById(id);
   }

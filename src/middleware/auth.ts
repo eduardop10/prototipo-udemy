@@ -1,9 +1,10 @@
 import { Request, Response, NextFunction } from 'express';
-import { AppError } from '../errors/AppError';
-import { extractTokenPayload } from '../utils/jwt';
+import { UnauthenticatedError, UnauthorizedError } from '../errors';
+import { extractTokenPayload, UserPayload, UserWithAdminPayload} from '../utils/jwt';
 
 const authenticateUser = async (req: Request, res: Response, next: NextFunction) => {
   let token;
+
   // check header
   const authHeader = req.headers.authorization;
   if (authHeader && authHeader.startsWith('Bearer')) {
@@ -15,19 +16,42 @@ const authenticateUser = async (req: Request, res: Response, next: NextFunction)
   }
 
   if (!token) {
-    throw new AppError('Authentication invalid');
+    throw new UnauthenticatedError('Authentication invalid');
   }
-  try {
-    const payload = extractTokenPayload(token);
 
-    req.user = {
-      _id: payload._id,
-      name: payload.name,
-    };
-    next();
-  } catch (error) {
-    throw new AppError('Authentication invalid');
+  const payload = extractTokenPayload(token);
+
+  req.user = {
+    _id: payload._id,
+    name: payload.name
+  };
+
+  next();
+};
+
+const authenticateAdmin = async (req: Request, res: Response, next: NextFunction) => {
+  let token;
+
+  // check header
+  const authHeader = req.headers.authorization;
+
+  if (authHeader && authHeader.startsWith('Bearer')) {
+    token = authHeader.split(' ')[1];
   }
+  // check cookies
+  else if (req.cookies.token) {
+    token = req.cookies.token;
+  }
+
+  if (!token) {
+    throw new UnauthenticatedError('Authentication invalid');
+  }
+
+  if (!isAdmin(token)) {
+    throw new UnauthorizedError('Unauthorized');
+  }
+
+  next();
 };
 
 const authorizeRoles = (...roles: string[]) => {
@@ -41,4 +65,31 @@ const authorizeRoles = (...roles: string[]) => {
   };
 };
 
-export { authenticateUser, authorizeRoles };
+const authenticateAdmin2 = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    authenticateUser(req, res, async () => {
+      const token = req.cookies.token || '';
+
+      if (!token) {
+        throw new UnauthenticatedError('Authentication invalid');
+      }
+
+      if (!isAdmin(token)) {
+        throw new UnauthorizedError('Unauthorized');
+      }
+
+      next(); // Passa o controle para o próximo middleware
+    });
+  } catch (error) {
+    next(error); // Passa o erro para o próximo middleware de tratamento de erros
+  }
+};
+
+const isAdmin = (token: string): boolean => {
+  const payload = extractTokenPayload(token) as UserWithAdminPayload;
+  if(!payload){
+    throw new UnauthenticatedError('Authentication invalid')
+  }
+  return payload.isAdmin;
+};
+export { authenticateUser, authorizeRoles, authenticateAdmin };

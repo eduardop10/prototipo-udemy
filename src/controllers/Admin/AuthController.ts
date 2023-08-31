@@ -1,53 +1,35 @@
 import { Request, Response } from 'express';
 import { attachCookiesToResponse,  createJWT, } from '../../utils/jwt';
-import { RegisterUseCase, LoginUseCase, AboutUseCase, UpdateUseCase, DeleteUseCase } from '../../useCases/Student/AuthUseCase';
+import { LoginAdminUseCase } from '../../useCases/Admin/AuthUseCase';
 import { CreateStudentDTO } from '../../dtos/Student/CreateStudent';
 import { UpdateStudentDTO } from '../../dtos/Student/UpdateStudent';
 import { StudentRepository } from '../../repositories/Student';
+import { AdminRepository } from '../../repositories/Admin'
+import { AdminDocument } from '../../models/Admin';
 import bcrypt from 'bcrypt';
 import { NotFoundError, UnauthorizedError } from '../../errors';
 
 class AuthController {
-    async register(req: Request, res: Response) {
-          const { name, email, password, roles } = req.body;
-    
-          const studentRepository = new StudentRepository();
-          const registerUseCase = new RegisterUseCase(studentRepository);
-    
-          const StudentData: CreateStudentDTO = {
-            name,
-            email,
-            password
-          };
-    
-          const newStudent = await registerUseCase.execute(StudentData);
-    
-          res.status(200).json({
-            message: 'Student registered successfully',
-            Student: newStudent,
-          });
-          
-      }
 
       async login(req: Request, res: Response) {
           const { email, password } = req.body;
 
-          const studentRepository = new StudentRepository();
-          const loginUseCase = new LoginUseCase(studentRepository);
+          const adminRepository = new AdminRepository();
+          const loginUseCase = new LoginAdminUseCase(adminRepository);
 
           
-          const Student = await loginUseCase.execute(email);
+          const Admin = await loginUseCase.execute(email);
 
-          if (!Student) {
+          if (!Admin) {
             throw new UnauthorizedError('Invalid credentials')
           }
-          interface StudentPayload {
-            _id: string;
+          interface AdminPayload {
             name:string;
+            _id: string;
             isAdmin:boolean;
           }
           
-          const isPasswordValid = await Student.comparePassword(password);
+          const isPasswordValid = await Admin.comparePassword(password);
           
 
           if (!isPasswordValid) {
@@ -55,49 +37,28 @@ class AuthController {
           }
           
           // Generate a JWT token and attach it to cookies during login
-          const StudentPayload: StudentPayload = {
-            name:Student!.name,
-            _id: Student!._id,
-            isAdmin:Student.isAdmin
+          const AdminPayload: AdminPayload = {
+            name:Admin!.name,
+            _id: Admin!._id,
+            isAdmin: Admin!.isAdmin
       };
       
           // Generate a JWT token and attach it to cookies during login
           // You should implement this part using your JWT library
-          const token = createJWT(StudentPayload);
+          const token = createJWT(AdminPayload);
     
           // Attach cookies to response
           // You should implement this part based on your attachCookiesToResponse function
-          attachCookiesToResponse(res, StudentPayload);
+          attachCookiesToResponse(res, AdminPayload);
     
           res.status(200).json({
             message: 'Login successful',
-            StudentPayload,
+            AdminPayload,
             token
           });
         
       }
-
-      async about(req: Request, res: Response) {
-          const userId = req.user!._id;
-          
-          const studentRepository = new StudentRepository();
-          const aboutUseCase = new AboutUseCase(studentRepository);
-          
-    
-          const User = await aboutUseCase.execute(userId);
-    
-          if (!User) {
-            throw new NotFoundError('User not found');
-            
-          }
-    
-          res.status(200).json({
-            user: User,
-          });
-        
-      }
-      
-
+/* 
       async update(req: Request, res: Response) {
       
           const userId = req.user!._id; // Assuming you're passing user ID in the URL
@@ -127,24 +88,8 @@ class AuthController {
             user: updatedUser,
           });
         
-      }
-
-      async delete(req: Request, res: Response) {
-          const userId = req.user!._id; // Assuming you're passing user ID in the URL
-          const requesterId = userId; // User ID from token
-      
-          const studentRepository = new StudentRepository();
-          const deleteUseCase = new DeleteUseCase(studentRepository);
-      
-          // Execute the delete operation
-          await deleteUseCase.execute(userId, requesterId);
-      
-          res.status(200).json({
-            message: 'User deleted successfully',
-          });
-       
-        }
-      }
+      } */
+    }
       
     
      

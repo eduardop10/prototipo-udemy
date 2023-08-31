@@ -1,11 +1,16 @@
 import jwt from 'jsonwebtoken';
 import { Response } from 'express';
-import { AppError } from '../errors/AppError';
+import { UnauthenticatedError } from '../errors';
 
 interface UserPayload {
   _id: string;
   name: string;
 }
+
+interface UserWithAdminPayload extends UserPayload {
+  isAdmin: boolean;
+}
+
 
 const createJWT = (payload: UserPayload): string => {
   const token = jwt.sign(payload, "jwtsecret", {
@@ -36,12 +41,13 @@ const attachCookiesToResponse = (res: Response, user: UserPayload): void => {
   });
 };
 
-const extractTokenPayload = (token: string): UserPayload => {
+const extractTokenPayload = (token: string): UserPayload  => {
   try {
     const decoded = jwt.verify(token, 'jwtsecret') as UserPayload;
     return decoded;
   } catch (error) {
-    throw new AppError('Invalid token');
+    throw new UnauthenticatedError('Invalid token');
   }
 };
-export { createJWT, isTokenValid, attachCookiesToResponse, extractTokenPayload, UserPayload };
+
+export { createJWT, isTokenValid, attachCookiesToResponse, extractTokenPayload, UserPayload, UserWithAdminPayload };

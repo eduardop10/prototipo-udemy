@@ -1,36 +1,34 @@
 import { Schema, model, Document } from 'mongoose';
 import bcrypt from 'bcrypt';
 
-interface Schedule {
-  _id: string; 
-  startTime: Date;
-  endTime: Date;
-}
-
 interface Instructor {
   name: string;
   email: string;
   password: string;
-  speciality: string;
-  availableSchedule: Schedule[];
+  specialty: string;
+  isAdmin: boolean;
 }
 
 interface InstructorDocument extends Instructor, Document {
   comparePassword(candidatePassword: string): Promise<boolean>;
 }
-
-const scheduleSchema = new Schema<Schedule>({
-  
-  startTime: { type: Date, required: true },
-  endTime: { type: Date, required: true },
-});
+const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
+const passwordRegex = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{8,}$/;
 
 const instructorSchema = new Schema<InstructorDocument>({
-  name: { type: String, required: true },
-  email: { type: String, required: true, unique: true },
-  password: { type: String, required: true },
-  speciality: { type: String, required: true },
-  availableSchedule: [scheduleSchema],
+  name: { type: String, 
+      required: [true, 'Please provide name'], },
+  email: { type: String,  
+    required: [true, 'Please provide email'], 
+    unique: true, 
+    match: [emailRegex, 'Please provide a valid email address'],},
+  password: { type: String, 
+    minlength:8, 
+    required: [true, 'Please provide password'], 
+    match: [passwordRegex, 'Password must contain at least 8 characters, including one lowercase letter, one uppercase letter, and one digit'], },
+  specialty: { type: String, 
+    required: true },
+    isAdmin: { type: Boolean, default: false }, 
 });
 
 instructorSchema.pre('save', async function () {
@@ -47,4 +45,4 @@ instructorSchema.methods.comparePassword = async function (candidatePassword: st
 const InstructorModel = model<InstructorDocument>('Instructor', instructorSchema);
 
 export default InstructorModel;
-export { Instructor, InstructorDocument, Schedule };
+export { Instructor, InstructorDocument };

@@ -28,6 +28,7 @@ class InstructorRepository {
 
     // Check if the user exists
     const user = await this.findById(id);
+    
     if (!user) {
       throw new NotFoundError('User not found');
     }

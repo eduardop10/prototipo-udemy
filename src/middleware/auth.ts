@@ -1,6 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 import { UnauthenticatedError, UnauthorizedError } from '../errors';
 import { extractTokenPayload, UserPayload, UserWithAdminPayload} from '../utils/jwt';
+import * as dotenv from 'dotenv';
+dotenv.config();
 
 const authenticateUser = async (req: Request, res: Response, next: NextFunction) => {
   let token;

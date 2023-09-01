@@ -1,6 +1,8 @@
 import jwt from 'jsonwebtoken';
 import { Response } from 'express';
 import { UnauthenticatedError } from '../errors';
+import * as dotenv from 'dotenv';
+dotenv.config();
 
 interface UserPayload {
   _id: string;
@@ -14,14 +16,14 @@ interface UserWithAdminPayload extends UserPayload {
 
 const createJWT = (payload: UserPayload): string => {
   const token = jwt.sign(payload, "jwtsecret", {
-    expiresIn: "1h",
+    expiresIn: process.env.JWT_LIFETIME,
   });
   return token;
 };
 
 const isTokenValid = (token: string): boolean => {
   try {
-    jwt.verify(token, "jwtsecret");
+    jwt.verify(token, process.env.JWT_SECRET!);
     return true;
   } catch (error) {
     return false;
@@ -43,7 +45,7 @@ const attachCookiesToResponse = (res: Response, user: UserPayload): void => {
 
 const extractTokenPayload = (token: string): UserPayload  => {
   try {
-    const decoded = jwt.verify(token, 'jwtsecret') as UserPayload;
+    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as UserPayload;
     return decoded;
   } catch (error) {
     throw new UnauthenticatedError('Invalid token');

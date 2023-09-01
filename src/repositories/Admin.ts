@@ -2,6 +2,9 @@ import AdminModel, { AdminDocument } from '../models/Admin';
 import { CreateAdminDTO } from '../dtos/Admin/CreateAdmin';
 import { NotFoundError } from '../errors';
 
+import * as dotenv from 'dotenv';
+dotenv.config();
+
 class AdminRepository {
   async create(data: CreateAdminDTO): Promise<AdminDocument> {
     const instructor = new AdminModel(data);
@@ -9,23 +12,20 @@ class AdminRepository {
   }
 
   async createDefaultAdmin() {
-    try {
-      const existingAdmin = await AdminModel.findOne({ email: 'admin@admin.com' });
+      const existingAdmin = await AdminModel.findOne({ email: process.env.ADMIN_EMAIL });
   
       if (!existingAdmin) {
         const defaultAdmin = new AdminModel({
           name: 'Admin',
-          email: 'admin@admin.com',
-          password: 'adminPassword',
+          email: process.env.ADMIN_EMAIL,
+          password: process.env.ADMIN_PASSWORD,
           isAdmin: true
         });
-  
+        
         await defaultAdmin.save();
         console.log('Default Admin Created With Success!');
       }
-    } catch (error) {
-      console.error('Erro ao criar o admin padrão:', error);
-    }
+    
   }
 
   async findById(id: string): Promise<AdminDocument | null> {
